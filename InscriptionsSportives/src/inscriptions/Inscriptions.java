@@ -111,38 +111,25 @@ public class Inscriptions implements Serializable
 	 * @return
 	 */
 	
-	public Personne createPersonne(String nom, String prenom, String mail)
+	public Personne createPersonne(Inscriptions inscription)
 	{
-		Connection c = null;
-		 try
-	        {
-	                Class.forName("com.mysql.jdbc.Driver");
-	                String url = "jdbc:mysql://localhost/inscription", user = "root", password = "";
-	                c = DriverManager.getConnection(url, user, password);
-	                String req = "INSERT INTO personne VALUES (" + nom + ","+ prenom +","+ mail +")";
-	                Statement s = c.createStatement();
-	                int nbMaj = s.executeUpdate(req);
-	                if (nbMaj == 0)
-	                	System.out.println("Erreur lors de l'enregistrement en base de données");
-	        }
-	        catch (ClassNotFoundException e)
-	        {
-	                System.out.println("Pilote JDBC non installé.");
-	        }
-	        catch (SQLException e)
-	        {
-	                System.out.println(e);
-	        }
-		 	try
-	        {
-	                if (c != null)
-	                        c.close();
-	        }
-	        catch (SQLException e)
-	        {
-	                System.out.println("Impossible de fermer la connection.");
-	        }
-	
+		String nom = EntreesSorties.getString("Entrer le nom : ");
+		String prenom = EntreesSorties.getString("Entrer le prenom : ");
+		String mail = EntreesSorties.getString("Entrer le mail : ");
+		Connection c = inscription.connexion("jdbc:mysql://localhost/inscription", "root", "");
+		try
+		{
+		    String req = "INSERT INTO personne(nom, prenom, mail) VALUES ('" + nom + "','"+ prenom +"','"+ mail +"')";
+			Statement s = c.createStatement();
+			int nbMaj = s.executeUpdate(req);
+			if (nbMaj == 0)
+			System.out.println("Erreur lors de l'enregistrement en base de données");
+		}
+		catch (SQLException e)
+		{
+		        System.out.println(e);
+		}
+		inscription.deconnexion(c);
 		Personne personne = new Personne(this, nom, prenom, mail);
 		candidats.add(personne);
 		return personne;
@@ -268,34 +255,8 @@ public class Inscriptions implements Serializable
 		}
 	}
 	
-	@Override
-	public String toString()
+	public Connection connexion(String bd,String utilisateur ,String mdp)
 	{
-		return "Candidats : " + getCandidats().toString()
-			+ "\nCompetitions  " + getCompetitions().toString();
-	}
-	
-	public static void main(String[] args)
-	{
-		/*Inscriptions inscriptions = Inscriptions.getInscriptions();
-		Competition flechettes = inscriptions.createCompetition("Mondial de fléchettes", null, false);
-		Personne tony = inscriptions.createPersonne("Tony", "Dent de plomb", "azerty"), 
-				boris = inscriptions.createPersonne("Boris", "le Hachoir", "ytreza");
-		flechettes.add(tony);
-		Equipe lesManouches = inscriptions.createEquipe("Les Manouches");
-		lesManouches.add(boris);
-		lesManouches.add(tony);
-		System.out.println(inscriptions);
-		lesManouches.delete();
-		System.out.println(inscriptions);
-		try
-		{
-			inscriptions.sauvegarder();
-		} 
-		catch (IOException e)
-		{
-			System.out.println("Sauvegarde impossible." + e);
-		}*/
 		Connection c = null;
         try
         {
@@ -311,7 +272,13 @@ public class Inscriptions implements Serializable
         {
                 System.out.println(e);
         }
-        try
+        return c;
+	}
+	
+	public  boolean deconnexion(Connection c)
+	{
+		boolean deconnexion = true;
+		try
         {
                 if (c != null)
                         c.close();
@@ -319,47 +286,46 @@ public class Inscriptions implements Serializable
         catch (SQLException e)
         {
                 System.out.println("Impossible de fermer la connection.");
+                deconnexion = false;
         }
+		return deconnexion;
+	}
+	@Override
+	public String toString()
+	{
+		return "Candidats : " + getCandidats().toString()
+			+ "\nCompetitions  " + getCompetitions().toString();
+	}
+	
+	public static void main(String[] args)
+	{
+		
+		Inscriptions inscriptions = Inscriptions.getInscriptions();
         Menu menu = new Menu("Menu Principal");
+        Menu menuInscription = new Menu("Inscription", "1");
         Option personne = new Option("Ajouter une personne", "1");
-        menu.ajoute(personne);
+        Option equipe = new Option("Ajouter une �quipe", "2");
+        Option listePersonnes = new Option("Liste des personnes", "3");
+        Option listeEquipe = new Option("Liste des equipes", "4");
+        menuInscription.ajoute(personne);
+        menuInscription.ajoute(equipe);
+        menuInscription.ajoute(listePersonnes);
+        menuInscription.ajoute(listeEquipe);
+        menuInscription.ajouteRevenir("r");;
+        Menu menuCompetition = new Menu("Competition", "2");
+        Option competition = new Option("Ajouter une comp�tition", "1");
+        Option listeCompetition = new Option("Liste des comp�titions", "2");
+        menuCompetition.ajoute(competition);
+        menuCompetition.ajoute(listeCompetition);
+        menuCompetition.ajouteRevenir("r");
+        menu.ajoute(menuInscription);
+        menu.ajoute(menuCompetition);
+        menu.ajouteQuitter("q");
         personne.setAction(new Action()
         		{
         			public void optionSelectionnee()
         			{
-        				String nom = EntreesSorties.getString("Entrer le nom : ");
-        				String prenom = EntreesSorties.getString("Entrer le prenom : ");
-        				String mail = EntreesSorties.getString("Entrer le mail : ");
-        				Connection c = null;
-        				 try
-        			        {
-        			                Class.forName("com.mysql.jdbc.Driver");
-        			                String url = "jdbc:mysql://localhost/inscription", user = "root", password = "";
-        			                c = DriverManager.getConnection(url, user, password);
-        			                //String req = "INSERT INTO personne(nom, prenom, mail) VALUES ('aaa','aaa','aa')";
-        			                String req = "INSERT INTO personne(nom, prenom, mail) VALUES ('" + nom + "','"+ prenom +"','"+ mail +"')";
-        			                Statement s = c.createStatement();
-        			                int nbMaj = s.executeUpdate(req);
-        			                if (nbMaj == 0)
-        			                	System.out.println("Erreur lors de l'enregistrement en base de données");
-        			        }
-        			        catch (ClassNotFoundException e)
-        			        {
-        			                System.out.println("Pilote JDBC non installé.");
-        			        }
-        			        catch (SQLException e)
-        			        {
-        			                System.out.println(e);
-        			        }
-        				 	try
-        			        {
-        			                if (c != null)
-        			                        c.close();
-        			        }
-        			        catch (SQLException e)
-        			        {
-        			                System.out.println("Impossible de fermer la connection.");
-        			        };
+        				inscriptions.createPersonne(inscriptions);
         			}
         		});
         
