@@ -99,4 +99,3 @@ CREATE TABLE IF NOT EXISTS `personne` (
 
 INSERT INTO `personne` (`Nom`, `Prenom`, `Mail`, `IdCandidat`) VALUES
 ('titi', 'toto', 'toto@titi.fr', 1),
-('henin', 'jerome', 'jer5@live.fr', 2);
