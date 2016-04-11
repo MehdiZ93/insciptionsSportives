@@ -322,6 +322,7 @@ public class Inscriptions implements Serializable
         menu.ajoute(menuCompetition);
         menu.ajouteQuitter("q");
         personne.setAction(new Action()
+        //commentaire !
         		{
         			public void optionSelectionnee()
         			{
